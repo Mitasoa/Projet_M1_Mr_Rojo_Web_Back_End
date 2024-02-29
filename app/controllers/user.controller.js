@@ -250,24 +250,20 @@ exports.deleteUser = async (req, res) => {
 };
 
 exports.getActiveEmploye = async (request, response) => {
-  try {
-    const employe = await User.find({ etat: 1, role: 20 });
-    response.send(employe);
-  } catch (error) {
-    response.send(500).send({ message: error.message });
-  }
-};
-exports.mailSender = (request, response) => {
-  // Envoyer l'e-mail
-  try {
-    transporter_smtp.emailSender(
-      "raltolotra@gmail.com",
-      "tolotra@kanteco.com",
-      "test",
-      "test"
-    );
-    response.send({ message: "Email envoyé avec succès" });
-  } catch (error) {
-    response.status(500).send({ message: error.message });
-  }
-};
+    try{
+        const employe = await User.find({etat : 1, role: 20});
+        response.send(employe);
+    }
+   catch(error){
+        response.send(500).send({message: error.message});
+    }
+}
+exports.mailSender = (request, response) =>{
+    try{
+        transporter_smtp.emailSender('miora.ratsiresy@gmail.com','fanantenanaratsiresy@gmail.com','test','test');
+        response.send({message:'Email envoyé avec succès'});
+    }
+    catch(error){
+        response.status(500).send({message: error.message});
+    }
+}
