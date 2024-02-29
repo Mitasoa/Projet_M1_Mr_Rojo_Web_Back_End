@@ -6,13 +6,12 @@ const cron = require("node-cron");
 const path = require("path");
 const reminder = require("./app/service/rappel.service");
 var corsOptions = {
-  origin: "http://localhost:4200",
+  origin: "https://m1p11mean-roussel-miora.onrender.com/",
 };
 app.use(cors(corsOptions));
 
-
-app.use(express.json({ limit: '5mb' }));
-app.use(express.urlencoded({ limit: '5mb', extended: true }));
+app.use(express.json({ limit: "5mb" }));
+app.use(express.urlencoded({ limit: "5mb", extended: true }));
 
 const tokenMiddleware = require("./app/middleware/token.middleware");
 const identifierMiddleware = require("./app/middleware/identifier.middleware");
@@ -67,8 +66,7 @@ require("./app/routes/employe.routes")(app);
 require("./app/routes/client.routes")(app);
 require("./app/routes/service.routes")(app);
 require("./app/routes/sendEmail")(app);
-app.use('/api/uploads', express.static(path.join(__dirname, 'app/uploads')));
-
+app.use("/api/uploads", express.static(path.join(__dirname, "app/uploads")));
 
 // set port, listen for requests
 const PORT = process.env.PORT || 1672;
