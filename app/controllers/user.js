@@ -105,13 +105,17 @@ const getUsers = async (req, res) => {
 // Fonction pour récupérer un utilisateur par son ID
 const getUserById = async (req, res) => {
   try {
-    const userId = req.params.id;
+    const userId = req.decoded.userId;
+    console.log(req.decoded.userId);
     const user = await User.findById(userId);
+    console.log(user + "jjj");
+
     if (!user) {
       return res.status(404).json({ message: "Utilisateur non trouvé." });
     }
     res.json(user);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: error.message });
   }
 };

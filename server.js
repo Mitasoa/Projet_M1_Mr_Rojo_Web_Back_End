@@ -14,6 +14,29 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ limit: '5mb', extended: true }));
 
+const tokenMiddleware = require("./app/middleware/token.middleware");
+const identifierMiddleware = require("./app/middleware/identifier.middleware");
+
+const userRoutes = require("./app/routes/user");
+const employeeRoutes = require("./app/routes/employee");
+
+// Montage des routes sur l'application principale
+app.use(
+  "/api_user",
+  tokenMiddleware.checkTokenExistance,
+  tokenMiddleware.decryptToken,
+  userRoutes
+);
+app.use(
+  "/api_employee",
+  tokenMiddleware.checkTokenExistance,
+  tokenMiddleware.decryptToken,
+  employeeRoutes
+);
+
+// parse requests of content-type - application/json
+app.use(express.json());
+
 //connect to database
 const db = require("./app/models");
 db.mongoose

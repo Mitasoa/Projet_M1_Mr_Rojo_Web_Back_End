@@ -1,12 +1,16 @@
 const bcrypt = require("bcrypt");
 const db = require("../models");
 const Rdv = db.rdv;
+const mongoose = require("mongoose");
 
 const afficherRdv = async (req, res) => {
   try {
     const { idService, idClient, idEmploye, status, etat } = req.query;
 
     let query = {};
+
+    var id = req.decoded.userId;
+    query.idEmploye = id;
 
     // Filtrer par idService
     if (idService && idService.trim() !== "") query.idService = idService;
@@ -23,25 +27,44 @@ const afficherRdv = async (req, res) => {
     // Filtrer par etat
     if (etat && etat.trim() !== "") query.etat = parseInt(etat);
 
-    const rdvs = await Rdv.aggregate([
-      {
-        $match: query, // Filtre les documents Rdv selon la requête
-      },
-      {
-        $lookup: {
-          from: "services", // Nom de la collection Service
-          localField: "idService",
-          foreignField: "id",
-          as: "service", // Alias pour les résultats de la jointure
-        },
-      },
-      {
-        $unwind: "$service", // Déroule les résultats de la jointure
-      },
-    ]);
+    const rdvs = await Rdv.find(query);
 
-    res.json(rdvs);
+    // Pour chaque rendez-vous, effectuer une requête directe sur la table "services"
+    const { ObjectId } = require("mongoose").Types;
+
+    const rdvsWithService = [];
+    for (let rdv of rdvs) {
+      const service = await mongoose.connection
+        .collection("services")
+        .find({ _id: new ObjectId(rdv.idService) }) // Convertir rdv.idService en ObjectId
+        .toArray();
+
+      // Créer un nouvel objet pour stocker le rendez-vous avec le service
+      const rdvWithService = {};
+
+      // Ajouter les champs du rendez-vous un par un dans l'objet rdvWithService
+      rdvWithService._id = rdv._id;
+      rdvWithService.idService = rdv.idService;
+      rdvWithService.idEmploye = rdv.idEmploye;
+      rdvWithService.idClient = rdv.idClient;
+      rdvWithService.dateheuredebut = rdv.dateheuredebut;
+      rdvWithService.dateheurefin = rdv.dateheurefin;
+      rdvWithService.status = rdv.status;
+      rdvWithService.etat = rdv.etat;
+      rdvWithService.prix = rdv.prix;
+
+      // Ajouter le champ "service" contenant les informations du service
+      rdvWithService.service = service[0];
+
+      // Ajouter le rendez-vous avec le service au tableau rdvsWithService
+      rdvsWithService.push(rdvWithService);
+    }
+
+    console.log(rdvsWithService); // Débogage
+
+    res.json(rdvsWithService);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -61,6 +84,8 @@ const insererRdv = async (req, res) => {
           "Les champs idEmploye, dateheuredebut, dateheurefin et status sont obligatoires.",
       });
     }
+
+    var id = req.decoded.userId;
 
     // Convertir les dates en objets de date en spécifiant le fuseau horaire UTC
     const dateDebut = new Date(dateheuredebut + "Z");
@@ -108,7 +133,7 @@ const insererRdv = async (req, res) => {
 
     // Créer un nouveau rendez-vous et l'insérer dans la base de données
     const nouveauRdv = new Rdv({
-      idEmploye,
+      idEmploye: id,
       dateheuredebut: dateDebut, // Utiliser la date convertie
       dateheurefin: dateFin, // Utiliser la date convertie
       status: status || -10, // Par défaut, le statut est défini à -10 si non fourni
