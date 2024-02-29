@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const serviceSchema = new mongoose.Schema({
+  image: {
+    type: String,
+    required: false
+  },
     nom: {
       type: String,
       unique: true,

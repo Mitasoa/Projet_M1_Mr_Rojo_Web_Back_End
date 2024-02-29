@@ -3,17 +3,16 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const cron = require("node-cron");
+const path = require("path");
 const reminder = require("./app/service/rappel.service");
 var corsOptions = {
   origin: "http://localhost:4200",
 };
 app.use(cors(corsOptions));
 
-// parse requests of content-type - application/json
-app.use(express.json());
 
-// parse requests of content-type - application/x-www-form-urlencoded
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ limit: '5mb', extended: true }));
 
 //connect to database
 const db = require("./app/models");
@@ -39,12 +38,14 @@ require("./app/routes/user.routes")(app);
 require("./app/routes/depense.routes")(app);
 require("./app/routes/offreSpecial.routes")(app);
 require("./app/routes/device.routes")(app);
-require("./app/routes/service.routes")(app);
 require("./app/routes/manager.routes")(app);
 require("./app/routes/statistique.routes")(app);
 require("./app/routes/employe.routes")(app);
 require("./app/routes/client.routes")(app);
+require("./app/routes/service.routes")(app);
 require("./app/routes/sendEmail")(app);
+app.use('/api/uploads', express.static(path.join(__dirname, 'app/uploads')));
+
 
 // set port, listen for requests
 const PORT = process.env.PORT || 1672;
