@@ -5,21 +5,27 @@ const Service = require('../models/service.model');
 async function getAllServices(req, res) {
   try {
     const services = await Service.find({etat:5});
+    console.log(services)
     res.json(services);
   } catch (error) {
-    res.status(500).send({message: error.message });
+    console.log(error);
+    res.status(500).json({ "error": error });
   }
 }
 
 async function createService(req, res) {
   try {
-    const newService = new Service(req.body); 
+    const newServiceData = req.body;
+    if (req.file) {
+      newServiceData.image = req.file.filename;
+    }
+    const newService = new Service(newServiceData);
 
     await newService.save();
 
-    res.json(newService);
+    res.status(201).json(newService);
   } catch (error) {
-    res.status(400).send({message: error.message });
+    res.status(400).json({ "error": error.message });
   }
 }
 
@@ -27,12 +33,14 @@ async function updateService(req, res) {
   try {
     const serviceId = req.params.id;
     const updatedService = req.body;
-
+    if (req.file) {
+      updatedService.image = req.file.filename;
+    }
     await Service.findByIdAndUpdate(serviceId, updatedService);
 
-    res.json({ message: 'Service mis à jour avec succès' });
+    res.status(200).json({ message: 'Service mis à jour avec succès' });
   } catch (error) {
-    res.status(400).send({message: error.message });
+    res.status(400).json({ error: 'Erreur lors de la mise à jour du service' });
   }
 }
 
@@ -42,9 +50,9 @@ async function deleteService(req, res) {
 
     await Service.findByIdAndUpdate(serviceId, {etat: 0});
 
-    res.json({ message: 'Service supprimé avec succès' });
+    res.status(200).json({ message: 'Service supprimé avec succès' });
   } catch (error) {
-    res.status(400).send({message: error.message });
+    res.status(400).json({ erreur: error.message });
   }
 }
 
@@ -55,12 +63,12 @@ async function getServiceDetails(req, res) {
     const service = await Service.findById(serviceId);
 
     if (!service) {
-      return res.status(404).send({ message: 'Service non trouvé' });
+      return res.status(404).json({ error: 'Service non trouvé' });
     }
 
     res.json(service);
   } catch (error) {
-    res.status(500).send({message: error.message });
+    res.status(500).json({ error: 'Erreur lors de la récupération des détails du service' });
   }
 }
 
@@ -105,7 +113,7 @@ async function searchService(req, res) {
 
     res.json(services);
   } catch (error) {
-    res.status(500).send({message: error.message });
+    res.status(500).json({ error: 'Erreur lors de la recherche des services' });
   }
 }
 

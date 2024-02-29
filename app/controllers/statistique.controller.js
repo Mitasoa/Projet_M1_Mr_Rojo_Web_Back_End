@@ -1,13 +1,23 @@
 const db = require('../models');
 const Rdv = db.rdv;
-const Service = require('../models/service.model');
+const Service = require('../models/service.model'); 
 const Depense = db.depense;
-//Calcul temps moyen travail
+const Users = db.users;
+
+
+
+async function getAllEmploye(req, res) {
+    try {
+      const employes = await Users.find({etat:1,role:20});
+      res.json(employes);
+    } catch (error) {
+      res.status(500).json({ "error": error });
+    }
+  }
 async function calculerTempsMoyenTravail(req, res) {
     try {
         const { employeId, annee } = req.body;
         
-        // Construire un objet de filtre en fonction des paramètres disponibles
         const filtre = {};
         if (employeId) {
             filtre.idEmploye = employeId;
@@ -18,8 +28,9 @@ async function calculerTempsMoyenTravail(req, res) {
                 $lt: new Date(`${annee}-12-31T23:59:59.999`)
             };
         }
+        filtre.status=10;
+        filtre.etat=10;
 
-        // Utiliser l'objet de filtre dans la requête MongoDB
         const rdvs = await Rdv.find(filtre);
 
         const heuresTravailParEmployeParMois = {};
@@ -49,21 +60,32 @@ async function calculerTempsMoyenTravail(req, res) {
                 (temps / (nombreRdvsParMois[mois] || 1))
             );
 
-            const employeData = {
-                employeId,
-                tempsMoyenParMois: tempsMoyenParMois.map((temps) => temps.toFixed(2))
-            };
-
-            resultatFinal.push(employeData);
+            try {
+                const employe = await Users.findOne({ _id: employeId });
+                if (!employe) {
+                  console.log("Employé non trouvé");
+                  return;
+                }
+                const nomEmploye = employe.nom;
+                const employeData = {
+                    employeId,
+                    nomEmploye,
+                    tempsMoyenParMois: tempsMoyenParMois.map((temps) => temps.toFixed(2))
+                };
+    
+                resultatFinal.push(employeData);
+              } catch (err) {
+                console.error(err);
+              }              
         }
 
         res.json(resultatFinal);
     } catch (error) {
+        console.log(error)
         res.status(500).json({ "error": error });
     }
 }
 
-//Statistique reservation
 async function obtenirStatistiquesReservations(req, res) {
     try {
         let { annee } = req.body;
@@ -79,7 +101,8 @@ async function obtenirStatistiquesReservations(req, res) {
                     { $year: "$dateheuredebut" },
                     parseInt(annee)
                 ]
-            }
+            },
+            status: 10
         });
 
         const reservationsParMois = {};
@@ -120,7 +143,6 @@ async function obtenirStatistiquesReservations(req, res) {
     }
 }
 
-//Statistique chiffre affaire
 async function obtenirStatistiquesChiffreAffaires(req, res) {
     try {
         let { annee } = req.body;
@@ -136,7 +158,9 @@ async function obtenirStatistiquesChiffreAffaires(req, res) {
                     { $year: "$dateheuredebut" },
                     parseInt(annee)
                 ]
-            }
+            },
+            status:10,
+            etat:10
         });
         const services = await Service.find({etat:5});
 
@@ -152,13 +176,14 @@ async function obtenirStatistiquesChiffreAffaires(req, res) {
             chiffreAffairesParMois[mois] = { total: 0, jours: [] };
         });
 
+        console.log(rdvs);
+        console.log(services);
         rdvs.forEach((rdv) => {
             const date = new Date(rdv.dateheuredebut);
             const mois = date.toLocaleString('default', { month: 'long' }).toLowerCase();
             const jour = date.getDate();
 
-            const service = services.find(service => service.id === rdv.idservice);
-            const montant = (service ? service.prix : 0);
+            const montant =rdv.prix;
 
             const jourExist = chiffreAffairesParMois[mois].jours.find(entry => entry.jour === jour);
 
@@ -176,9 +201,11 @@ async function obtenirStatistiquesChiffreAffaires(req, res) {
 
         res.json(chiffreAffairesParMois);
     } catch (error) {
+        console.log(error)
         res.status(500).json({ "error": error });
     }
 }
+
 
 
 async function obtenirStatistiquesBenefice(req, res) {
@@ -196,16 +223,17 @@ async function obtenirStatistiquesBenefice(req, res) {
                     { $year: "$dateheuredebut" },
                     parseInt(annee)
                 ]
-            }
+            },
+            status:10,
+            etat:10
         });
-        const services = await Service.find({etat:5});
         const depenses = await Depense.find({
             $expr: {
                 $eq: [
                     { $year: "$date" },
                     parseInt(annee)
                 ]
-            }
+            },
         });
 
         const beneficeParMois = {};
@@ -220,23 +248,34 @@ async function obtenirStatistiquesBenefice(req, res) {
             beneficeParMois[mois] = 0;
         });
 
-        rdvs.forEach(async (rdv) => {
+        for (const rdv of rdvs) {
             const date = new Date(rdv.dateheuredebut);
             const mois = date.toLocaleString('default', { month: 'long' }).toLowerCase(); 
-            const service = services.find(service => service.id === rdv.idservice);
-
-            beneficeParMois[mois] += (service ? service.prix-(service.prix*service.commission/100) : 0);
-        });
-
-        depenses.forEach((depense) => {
+            try{
+                const serviceRdv = await Service.findOne({ _id: rdv.idService });
+                if (!serviceRdv) {
+                    console.log(`Aucun service trouvé pour l'ID de service : ${rdv.idService}`);
+                    continue;
+                }
+                const montant = rdv.prix;
+                const commission = serviceRdv.commission;                
+        
+                beneficeParMois[mois] += montant-(montant*commission/100);
+            }
+            catch(error){
+                console.log(error);
+            }
+        }
+        
+        for (const depense of depenses) {
             const date = new Date(depense.date);
             const mois = date.toLocaleString('default', { month: 'long' }).toLowerCase(); 
-
+        
             beneficeParMois[mois] -= depense.depense;
-        });
-
+        }
+        console.log(beneficeParMois)
         res.json(beneficeParMois);
-    } catch (error) {
+        } catch (error) {
         res.status(500).json({ "error": error });
     }
 }
@@ -244,7 +283,6 @@ module.exports = {
     calculerTempsMoyenTravail,
     obtenirStatistiquesReservations,
     obtenirStatistiquesChiffreAffaires,
-    obtenirStatistiquesBenefice
+    obtenirStatistiquesBenefice,
+    getAllEmploye
 };
-
-

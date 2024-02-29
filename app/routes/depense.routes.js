@@ -11,6 +11,5 @@ module.exports = app => {
     router.get('/detaildepense/:id',depenseController.getDepenseDetails);
     router.get('/rechercherdepense',depenseController.searchDepense);
 
-
     app.use('/api/depenses', tokenMiddleware.checkTokenExistance,tokenMiddleware.decryptToken,identifierMiddleware.getInfoManager,router);
 }

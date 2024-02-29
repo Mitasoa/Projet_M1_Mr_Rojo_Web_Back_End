@@ -1,13 +1,14 @@
 module.exports = app => {
     const router = require("express").Router();
-    const statistiqueController = require('../controllers/statistique.controller'); 
+    const statistiqueController = require('../controllers/statistique.controller');
     const tokenMiddleware = require('../middleware/token.middleware');
-    const identifierMiddleware = require('../middleware/identifier.middleware'); 
+    const identifierMiddleware = require('../middleware/identifier.middleware');
 
-    router.get('/tempsmoyenne', statistiqueController.calculerTempsMoyenTravail);
-    router.get('/statreservation', statistiqueController.obtenirStatistiquesReservations);
-    router.get('/statCA', statistiqueController.obtenirStatistiquesChiffreAffaires);
-    router.get('/statBenefice', statistiqueController.obtenirStatistiquesBenefice);    
+    router.post('/tempsmoyenne', statistiqueController.calculerTempsMoyenTravail);
+    router.post('/statreservation', statistiqueController.obtenirStatistiquesReservations);
+    router.post('/statCA', statistiqueController.obtenirStatistiquesChiffreAffaires);
+    router.post('/statBenefice', statistiqueController.obtenirStatistiquesBenefice);
+    router.get('/listeemployes', statistiqueController.getAllEmploye);
 
-    app.use('/api/stats', tokenMiddleware.checkTokenExistance,tokenMiddleware.decryptToken,identifierMiddleware.getInfoManager,router);
+    app.use('/api/stats', tokenMiddleware.checkTokenExistance, tokenMiddleware.decryptToken, identifierMiddleware.getInfoManager, router);
 }
