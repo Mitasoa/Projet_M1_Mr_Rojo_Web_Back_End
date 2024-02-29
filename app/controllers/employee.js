@@ -4,15 +4,7 @@ const Rdv = db.rdv;
 
 const afficherRdv = async (req, res) => {
   try {
-    const {
-      idService,
-      idClient,
-      idEmploye,
-      status,
-      etat,
-      page,
-      limit,
-    } = req.query;
+    const { idService, idClient, idEmploye, status, etat } = req.query;
 
     let query = {};
 
