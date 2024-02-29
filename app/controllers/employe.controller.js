@@ -1,18 +1,11 @@
 const { ERROR_STATUS_CODE } = require("../constant/Error.constant");
 const db = require("../models");
 const Rdv = db.rdv;
-const Service = require('../models/service.model');
+const Service = require("../models/service.model");
 const afficherRdv_with_paginate = async (req, res) => {
   try {
     const idEmploye = req.decoded.userId;
-    const {
-      idService,
-      idClient,
-      status,
-      etat,
-      page,
-      limit,
-    } = req.query;
+    const { idService, idClient, status, etat, page, limit } = req.query;
 
     let query = {};
 
@@ -41,24 +34,21 @@ const afficherRdv_with_paginate = async (req, res) => {
     const rdvs = await Rdv.aggregate([
       {
         $match: query, // Filtre les documents Rdv selon la requête
-       },
-       {
-        $lookup: {
-            from: "services", // Nom de la collection Service
-            localField: "idService",
-            foreignField: "_id", // Champ à associer dans la collection Service
-            as: "service" // Alias pour les résultats de la jointure
-        }
-    },
-      {
-        $unwind: "$service", // Déroule les résultats de la jointure
-       },
-      {
-        $skip: pageOptions.page * pageOptions.limit, // Ignorer les documents selon la pagination
       },
       {
-        $limit: pageOptions.limit, // Limiter le nombre de résultats selon la pagination
-      }
+        $lookup: {
+          from: "services", // Nom de la collection Service
+          localField: "idService",
+          foreignField: "_id", // Champ "_id" de la collection "services"
+          as: "service", // Alias pour les résultats de la jointure
+        },
+      },
+      {
+        $unwind: {
+          path: "$service", // Déroule les résultats de la jointure
+          preserveNullAndEmptyArrays: true, // Préserve les éléments sans correspondance
+        },
+      },
     ]);
 
     res.json(rdvs);
@@ -67,28 +57,32 @@ const afficherRdv_with_paginate = async (req, res) => {
   }
 };
 
-const afficherRdv = async (req,res) => {
+const afficherRdv = async (req, res) => {
   const idEmploye = req.decoded.userId;
   try {
     // Récupérer les rendez-vous
-    const rdvs = await Rdv.find({idEmploye: idEmploye});
+    const rdvs = await Rdv.find({ idEmploye: idEmploye });
 
     // Récupérer les services correspondant aux idService des rendez-vous
-    const serviceIds = rdvs.map(rdv => rdv.idService);
+    const serviceIds = rdvs.map((rdv) => rdv.idService);
     const services = await Service.find({ _id: { $in: serviceIds } });
 
     // Mapper les services avec les rendez-vous
-    const rdvsWithServices = rdvs.map(rdv => {
-        const service = services.find(service => service.id == rdv.idService);
-        return { ...rdv.toObject(), service };
+    const rdvsWithServices = rdvs.map((rdv) => {
+      const service = services.find((service) => service.id == rdv.idService);
+      return { ...rdv.toObject(), service };
     });
     console.log(rdvsWithServices);
     res.send(rdvsWithServices);
   } catch (error) {
-      console.error(error);
-      res.status(ERROR_STATUS_CODE.INTERNAL_SERVER_ERROR).send({message:"Une erreur s'est produite lors de la récupération des rendez-vous avec les services :"+ error});
+    console.error(error);
+    res.status(ERROR_STATUS_CODE.INTERNAL_SERVER_ERROR).send({
+      message:
+        "Une erreur s'est produite lors de la récupération des rendez-vous avec les services :" +
+        error,
+    });
   }
-}
+};
 const insererRdv = async (req, res) => {
   try {
     const idEmploye = req.decoded.userId;
@@ -97,7 +91,7 @@ const insererRdv = async (req, res) => {
       idClient,
       dateheuredebut,
       dateheurefin,
-      status
+      status,
     } = req.body;
 
     if (
@@ -111,8 +105,8 @@ const insererRdv = async (req, res) => {
           "Les champs idEmploye, dateheuredebut, dateheurefin et status sont obligatoires.",
       });
     }
-     // Vérifier si la date de début est inférieure à la date de fin
-     if (new Date(dateheuredebut) >= new Date(dateheurefin)) {
+    // Vérifier si la date de début est inférieure à la date de fin
+    if (new Date(dateheuredebut) >= new Date(dateheurefin)) {
       return res.status(400).json({
         message: "La date de début doit être antérieure à la date de fin.",
       });

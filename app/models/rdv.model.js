@@ -14,10 +14,10 @@ module.exports = (mongoose) => {
         required: false,
       },
       dateheuredebut: {
-        type: Date
+        type: Date,
       },
       dateheurefin: {
-        type: Date
+        type: Date,
       },
       status: {
         type: Number,
@@ -34,8 +34,8 @@ module.exports = (mongoose) => {
       },
       prix: {
         type: Number,
-        require: true
-      }
+        require: true,
+      },
     },
     { timestamps: true }
   );
