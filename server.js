@@ -6,7 +6,7 @@ const cron = require("node-cron");
 const path = require("path");
 const reminder = require("./app/service/rappel.service");
 var corsOptions = {
-  origin: "https://m1p11mean-roussel-miora.onrender.com/",
+  origin: "*",
 };
 app.use(cors(corsOptions));
 
@@ -55,15 +55,13 @@ app.get("/", (req, res) => {
 
 //Rappel tout les jours à 6 heure du matin
 
-cron.schedule('0 9 * * *', () => {
-  console.log('reminder');
-  try{
+cron.schedule("0 9 * * *", () => {
+  console.log("reminder");
+  try {
     reminder.sendReminder();
-  }
-  catch(error){
+  } catch (error) {
     console.error("Une erreur inattendue s'est produite");
   }
-  
 });
 require("./app/routes/authentification.routes")(app);
 require("./app/routes/user.routes")(app);
