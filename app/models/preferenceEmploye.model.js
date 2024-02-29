@@ -1,13 +1,10 @@
 module.exports = mongoose => {
     var schema = mongoose.Schema(
       {
-        heureMatinDebut: String,
-        heureMatinFin:String,
-        heureMidiDebut: String,
-        heureMidiFin: String,
-        dow: Number
+        idClient: String,
+        idEmploye: String,       
       },
-      { timestamps: true }
+      { timestamps: false }
     );
   
     schema.method("toJSON", function() {
@@ -16,6 +13,6 @@ module.exports = mongoose => {
       return object;
     });
   
-    const Horaire = mongoose.model("horaire", schema);
-    return Horaire;
+    const PreferenceEmploye = mongoose.model("PreferenceEmploye", schema);
+    return PreferenceEmploye;
   };
