@@ -269,9 +269,8 @@ exports.getActiveEmploye = async (request, response) => {
     }
 }
 exports.mailSender = (request, response) =>{
-    // Envoyer l'e-mail
     try{
-        transporter_smtp.emailSender('raltolotra@gmail.com','tolotra@kanteco.com','test','test');
+        transporter_smtp.emailSender('miora.ratsiresy@gmail.com','fanantenanaratsiresy@gmail.com','test','test');
         response.send({message:'Email envoyé avec succès'});
     }
     catch(error){

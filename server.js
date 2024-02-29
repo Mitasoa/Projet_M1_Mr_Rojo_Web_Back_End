@@ -33,6 +33,16 @@ app.get("/", (req, res) => {
 
 //Rappel tout les jours à 6 heure du matin
 
+cron.schedule('0 9 * * *', () => {
+  console.log('reminder');
+  try{
+    reminder.sendReminder();
+  }
+  catch(error){
+    console.error("Une erreur inattendue s'est produite");
+  }
+  
+});
 require("./app/routes/authentification.routes")(app);
 require("./app/routes/user.routes")(app);
 require("./app/routes/depense.routes")(app);
