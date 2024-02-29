@@ -8,13 +8,14 @@ async function getAllServices(req, res) {
     console.log(services)
     res.json(services);
   } catch (error) {
-    console.log(error);
     res.status(500).json({ "error": error });
   }
 }
 
 async function createService(req, res) {
   try {
+    console.log("Ato lou")
+    console.log(req.body)
     const newServiceData = req.body;
     if (req.file) {
       newServiceData.image = req.file.filename;
@@ -25,6 +26,7 @@ async function createService(req, res) {
 
     res.status(201).json(newService);
   } catch (error) {
+    console.log(error)
     res.status(400).json({ "error": error.message });
   }
 }

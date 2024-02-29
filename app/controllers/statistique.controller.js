@@ -2,7 +2,7 @@ const db = require('../models');
 const Rdv = db.rdv;
 const Service = require('../models/service.model'); 
 const Depense = db.depense;
-const Users = db.users;
+const Users = db.user;
 
 
 
@@ -11,6 +11,7 @@ async function getAllEmploye(req, res) {
       const employes = await Users.find({etat:1,role:20});
       res.json(employes);
     } catch (error) {
+        console.log(error)
       res.status(500).json({ "error": error });
     }
   }

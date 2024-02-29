@@ -25,13 +25,14 @@ async function createDepense(req, res) {
 async function updateDepense(req, res) {
     try {
       console.log(req.body)
-      const depenseId = req.params.id;
       const updatedDepense = req.body;
+      updatedDepense._id = updatedDepense.id;
   
-      await Depense.findByIdAndUpdate(depenseId, updatedDepense);
+      await Depense.findByIdAndUpdate(updatedDepense._id, updatedDepense);
   
       res.status(200).json({ message: 'Dépense mis à jour avec succès' });
     } catch (error) {
+      console.log(error)
       res.status(400).json({ error: 'Erreur lors de la mise à jour du service' });
     }
   }

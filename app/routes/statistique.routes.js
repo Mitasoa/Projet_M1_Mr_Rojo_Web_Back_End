@@ -8,7 +8,7 @@ module.exports = app => {
     router.post('/statreservation', statistiqueController.obtenirStatistiquesReservations);
     router.post('/statCA', statistiqueController.obtenirStatistiquesChiffreAffaires);
     router.post('/statBenefice', statistiqueController.obtenirStatistiquesBenefice);
-    router.get('/listeemployes', statistiqueController.getAllEmploye);
+    router.get('/listeemployes', statistiqueController.getAllEmploye);   
 
     app.use('/api/stats', tokenMiddleware.checkTokenExistance, tokenMiddleware.decryptToken, identifierMiddleware.getInfoManager, router);
 }
