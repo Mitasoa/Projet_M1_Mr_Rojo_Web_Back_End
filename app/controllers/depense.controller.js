@@ -67,7 +67,6 @@ async function updateDepense(req, res) {
 
   async function searchDepense(req, res) {
     try {
-      console.log(req.query);
       const { date, libelle, depense } = req.query;
   
       const filtre = {};
@@ -83,13 +82,14 @@ async function updateDepense(req, res) {
       if (depense) {
         filtre.depense = Number(depense);
       }
-  
+      console.log(filtre);
   
       const resultats = await Depense.find(filtre);
   
       res.json(resultats);
     } catch (erreur) {
-      res.status(500).json({ erreur: 'Erreur lors de la recherche des services' });
+      console.log(erreur)
+      res.status(500).json({ erreur: erreur });
     }
   }
   

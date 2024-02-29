@@ -10,18 +10,55 @@ async function getAllServices(req, res) {
     res.status(500).json({ "error": error });
   }
 }
+const fs = require('fs');
+const path = require('path');
+
+async function uploadImage(base64image) {
+    try {
+        const matches = base64image.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
+        if (matches.length !== 3) {
+            throw new Error('Invalid input string');
+        }
+
+        const response = {
+            type: matches[1],
+            data: Buffer.from(matches[2], 'base64')
+        };
+
+        const decodedImg = response;
+        const imageBuffer = decodedImg.data;
+        const type = decodedImg.type;
+
+        let extension;
+        if (type === 'image/jpeg') {
+            extension = 'jpg';
+        } else if (type === 'image/png') {
+            extension = 'png';
+        } else {
+            throw new Error('Unsupported image type');
+        }
+
+        const fileName = `image_${Date.now()}.${extension}`;
+        const filePath = path.join(__dirname, '../uploads', fileName);
+
+        await fs.promises.writeFile(filePath, imageBuffer);
+
+        return fileName;
+    } catch (error) {
+        throw error;
+    }
+}
 
 async function createService(req, res) {
   try {
-    console.log("Ato lou")
-    console.log(req.body)
     const newServiceData = req.body;
-    if (req.file) {
-      newServiceData.image = req.file.filename;
-    }
     const newService = new Service(newServiceData);
+    if (newServiceData.image) {
+      const fileName = await uploadImage(newServiceData.image);
+      newService.image = fileName;
+    }
 
-    await newService.save();
+    await newService.save()
 
     res.status(201).json(newService);
   } catch (error) {
@@ -34,13 +71,15 @@ async function updateService(req, res) {
   try {
     const serviceId = req.params.id;
     const updatedService = req.body;
-    if (req.file) {
-      updatedService.image = req.file.filename;
+    if(updatedService.image){
+      const fileName = await uploadImage(updatedService.image);
+      updatedService.image = fileName;
     }
     await Service.findByIdAndUpdate(serviceId, updatedService);
 
     res.status(200).json({ message: 'Service mis à jour avec succès' });
   } catch (error) {
+    console.log(error)
     res.status(400).json({ error: 'Erreur lors de la mise à jour du service' });
   }
 }
