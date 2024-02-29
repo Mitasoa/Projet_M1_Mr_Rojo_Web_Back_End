@@ -1,4 +1,4 @@
-const db = require("../models");
+const db  = require('../models');
 const Depense = db.depense;
 
 async function getAllDepenses(req, res) {
@@ -8,9 +8,8 @@ async function getAllDepenses(req, res) {
     } catch (error) {
       res.status(500).json({ "error": error });
     }
-}
-
-
+  }
+  
 async function createDepense(req, res) {
     try {
       const newDepense = new Depense(req.body); 
@@ -23,21 +22,22 @@ async function createDepense(req, res) {
     }
 }
 
-
 async function updateDepense(req, res) {
     try {
-      const depenseId = req.params.id;
+      console.log(req.body)
       const updatedDepense = req.body;
+      updatedDepense._id = updatedDepense.id;
   
-      await Depense.findByIdAndUpdate(depenseId, updatedDepense);
+      await Depense.findByIdAndUpdate(updatedDepense._id, updatedDepense);
   
       res.status(200).json({ message: 'Dépense mis à jour avec succès' });
     } catch (error) {
+      console.log(error)
       res.status(400).json({ error: 'Erreur lors de la mise à jour du service' });
     }
-}
+  }
   
-async function deleteDepense(req, res) {
+  async function deleteDepense(req, res) {
     try {
       const depenseId = req.params.id;
   
@@ -47,10 +47,9 @@ async function deleteDepense(req, res) {
     } catch (error) {
       res.status(400).json({ erreur: error.message });
     }
-}
-
-
-async function getDepenseDetails(req, res) {
+  }
+  
+  async function getDepenseDetails(req, res) {
     try {
       const depenseId = req.params.id;
   
@@ -93,6 +92,8 @@ async function getDepenseDetails(req, res) {
       res.status(500).json({ erreur: 'Erreur lors de la recherche des services' });
     }
   }
+  
+  
 
 module.exports = {
     getAllDepenses,
@@ -101,5 +102,4 @@ module.exports = {
     deleteDepense,
     getDepenseDetails,
     searchDepense
-};  
-  
+};
