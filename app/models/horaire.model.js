@@ -1,8 +1,10 @@
 module.exports = mongoose => {
     var schema = mongoose.Schema(
       {
-        heureMatin: String,
-        heureMidi: String,
+        heureMatinDebut: String,
+        heureMatinFin: String,
+        heureMidiDebut: String,
+        heureMidiFin: String,
         dow: Number
       },
       { timestamps: true }
